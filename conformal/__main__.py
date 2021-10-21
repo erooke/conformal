@@ -13,15 +13,14 @@ def main():
 
     parser.add_argument("-o", "--output", metavar="output", nargs="?", default=None)
 
+    parser.add_argument("-r", "--resolution", nargs="?", default="512:512")
+
     args = parser.parse_args()
 
     input_file = args.file[0]
     output_file = args.output or "output.png"
 
-    # Not gifs
-    output_size = (512, 512)
-    # Gifs
-    # output_size = (256,256)
+    resolution = tuple(map(int, args.resolution.split(":")))
 
     input_image = Image.open(input_file)
 
@@ -39,7 +38,7 @@ def main():
         for frame in ImageSequence.Iterator(input_image):
             index += 1
             print("Computing frame:", index)
-            output = apply_map(input_image, output_size, conformal_map)
+            output = apply_map(input_image, resolution, conformal_map)
             frames.append(output)
 
         # All of this just facilitates animation
@@ -50,7 +49,7 @@ def main():
             output_file, save_all=True, append_images=frames[1:], loop=0, duration=33
         )
     else:
-        apply_map(input_image, output_size, conformal_map).save(output_file)
+        apply_map(input_image, resolution, conformal_map).save(output_file)
 
     print("done")
 
