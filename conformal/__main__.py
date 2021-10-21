@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 
 from PIL import Image, ImageSequence
 
-from conformal import spiral
+from conformal import mobius_inverse
 from tiled import apply_map
 
 
@@ -24,8 +24,8 @@ def main():
 
     input_image = Image.open(input_file)
 
-    conformal_map = lambda z: spiral(input_image.height, input_image.width, z)
-    # conformal_map = mobius_inverse(1,-1j,1,1j)
+    # conformal_map = lambda z: spiral(input_image.height, input_image.width, z)
+    conformal_map = mobius_inverse(1, -1j, 1, 1j)
 
     if input_image.format == "GIF":
         # Currently produces bloated files, the linear
@@ -34,12 +34,14 @@ def main():
         # at the end should realy convert to a palette
         # again to save space
         frames = []
-        index = 0
-        for frame in ImageSequence.Iterator(input_image):
-            index += 1
-            print("Computing frame:", index)
-            output = apply_map(input_image, resolution, conformal_map)
+
+        input_frames = ImageSequence.Iterator(input_image)
+        for index, frame in enumerate(input_frames, start=1):
+            print(f"\rComputing frame: {index}", end="")
+            output = apply_map(frame, resolution, conformal_map)
             frames.append(output)
+
+        print()
 
         # All of this just facilitates animation
         # Save every frame one after the other
