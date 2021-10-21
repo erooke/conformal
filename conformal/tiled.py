@@ -1,20 +1,23 @@
 from math import floor
+
 from PIL import Image
+
 """
 Implements a tiled image with bilinear interpolation
 and a function for mapping over them.
 """
+
 
 class Tiled:
     """
     Tiled image with bilinear interpolation.
 
     Simple wrapper which provides two main
-    functionalities. Using modular arithmetic 
+    functionalities. Using modular arithmetic
     to mimic tiling behavior, using bilinear
     interpolation to fill gaps between pixels.
-    
-    The end result is an image which you can 
+
+    The end result is an image which you can
     get a pixel value for any complex coordinate.
 
     The type of pixel it returns is based on the
@@ -25,7 +28,7 @@ class Tiled:
     Potential improvement:
     Give the image an intrinsic scaling, ie make
     it know how many units wide it is in the complex
-    plane as apposed to simply pixels. This would 
+    plane as apposed to simply pixels. This would
     allow you to input a 256x256 image and specify
     it is the unit square. Then the api would manage
     that for you, i.e. asking for the point 1+i would
@@ -33,6 +36,7 @@ class Tiled:
     image is 1 unit in it's shortest dimension and
     is centered at 0.
     """
+
     def __init__(self, im):
         self.__source = im
         self.height = im.height
@@ -79,7 +83,7 @@ class Tiled:
         Given a coordinate returns the pixel at that point.
 
         Given a pixel coordinate of a point in 'global'
-        space converts it to a pixel coordinate point in 
+        space converts it to a pixel coordinate point in
         'source' space and then returns the pixel at that
         coordinate in the source image.
 
@@ -93,7 +97,7 @@ class Tiled:
         """
         x = self.__get_x(coord[0])
         y = self.__get_y(coord[1])
-        return self.__source.getpixel((x,y))
+        return self.__source.getpixel((x, y))
 
     def bilinear(self, z):
         """
@@ -114,10 +118,11 @@ class Tiled:
         """
         x, y = z.real, z.imag
         x1, y1 = int(floor(x)), int(floor(y))
-        x2, y2 = x1+1, y1+1
-        left = lerp(self.get_pixel((x1,y1)), self.get_pixel((x1, y2)), y)
-        right = lerp(self.get_pixel((x2,y1)), self.get_pixel((x2,y2)), y)
+        x2, y2 = x1 + 1, y1 + 1
+        left = lerp(self.get_pixel((x1, y1)), self.get_pixel((x1, y2)), y)
+        right = lerp(self.get_pixel((x2, y1)), self.get_pixel((x2, y2)), y)
         return lerp(left, right, x)
+
 
 def lerp(lower, upper, coord):
     """
@@ -140,15 +145,15 @@ def lerp(lower, upper, coord):
     """
     if isinstance(lower, tuple):
         # If is a tuple interpolate each value
-        return tuple([lerp(c, d, coord) for c, d in zip(lower,upper)])
+        return tuple([lerp(c, d, coord) for c, d in zip(lower, upper)])
     ratio = coord % 1
-    return int(round(lower * (1.0-ratio) + upper * ratio))
+    return int(round(lower * (1.0 - ratio) + upper * ratio))
 
 
 def apply_map(source, size, function):
     """
     Applys the inverse map of a provided function to
-    an image. 
+    an image.
 
     This is really slow, can probably be made faster.
     Also meaning to implement the ability to define
@@ -170,21 +175,21 @@ def apply_map(source, size, function):
     """
     source = source.convert("RGB")
     tiled = Tiled(source)
-    output = Image.new("RGB",size)
+    output = Image.new("RGB", size)
 
-    scale = float(min(source.height,source.width))
-    translate = complex(-size[0]/2., -size[1]/2.)
+    scale = float(min(source.height, source.width))
+    translate = complex(-size[0] / 2.0, -size[1] / 2.0)
 
-    for x in range(0,output.width):
-        for y in range(0,output.height):
-            image = complex(x,y) + translate
+    for x in range(0, output.width):
+        for y in range(0, output.height):
+            image = complex(x, y) + translate
             try:
-                preimage = scale*function(image/scale)
+                preimage = scale * function(image / scale)
                 pixel = tiled.bilinear(preimage)
             except (ZeroDivisionError, ValueError):
                 # This happens occasionally, there are probably better
-                # ways to handle it (averaging the border of tiling 
+                # ways to handle it (averaging the border of tiling
                 # comes to mind)
-                pixel = (0,0,0)
-            output.putpixel((x,y), pixel)
+                pixel = (0, 0, 0)
+            output.putpixel((x, y), pixel)
     return output
