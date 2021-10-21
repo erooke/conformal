@@ -1,17 +1,23 @@
+from argparse import ArgumentParser
+
 from PIL import Image, ImageSequence
 
 from conformal import spiral
 from tiled import apply_map
 
-"""
-Boring file loading stuff used to calle the
-stuff from tiled and conformal
-"""
-
 
 def main():
-    input_file = "source.jpg"
-    output_file = "output.png"
+    parser = ArgumentParser(description="Apply conformal maps to images")
+
+    parser.add_argument("file", metavar="file", nargs=1, help="The image to map")
+
+    parser.add_argument("-o", "--output", metavar="output", nargs="?", default=None)
+
+    args = parser.parse_args()
+
+    input_file = args.file[0]
+    output_file = args.output or "output.png"
+
     # Not gifs
     output_size = (512, 512)
     # Gifs
