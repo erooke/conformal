@@ -5,8 +5,12 @@ import math
 Defines some basic conformal maps
 """
 
+class ComplexMap():
+    def __call__(self, z: complex) -> complex:
+        raise NotImplementedError()
 
-def mobius(a, b, c, d):
+
+class Mobius(ComplexMap):
     """
     Mobius transformation.
 
@@ -21,10 +25,17 @@ def mobius(a, b, c, d):
     -------
     function from C -> C
     """
-    return lambda z: (a * z + b) / (c * z + d)
+    def __init__(self, a: complex, b: complex, c: complex, d: complex) -> None:
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+
+    def __call__(self, z: complex) -> complex:
+        return (self.a * z + self.b) / (self.c * z + self.d)
 
 
-def mobius_inverse(a, b, c, d):
+class Mobius_Inverse(ComplexMap):
     """
     Inverse of a Mobius transformation.
 
@@ -39,10 +50,16 @@ def mobius_inverse(a, b, c, d):
     -------
     function from C -> C
     """
-    return lambda z: (d * z - b) / (-c * z + a)
+    def __init__(self, a: complex, b: complex, c: complex, d: complex) -> None:
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
 
+    def __call__(self, z: complex) -> complex:
+        return  (self.d * z - self.b) / (-self.c * z + self.a)
 
-def spiral(height, width, z):
+class Spiral(ComplexMap):
     """
     The inverse of a spiral map.
 
@@ -73,9 +90,12 @@ def spiral(height, width, z):
     -------
     complex preimage of z under the spiral
     """
-    diagonal = math.sqrt(height ** 2 + width ** 2)
-    phi = math.atan(float(height / width))
-    z = cmath.log(z)
-    z = z * cmath.exp(1j * phi)
-    z = z * (diagonal / (2 * math.pi))
-    return z
+    def __init__(self, height: int, width: int) -> None:
+        self.diagonal = math.sqrt(height ** 2 + width ** 2)
+        self.phi = math.atan2(height, width)
+
+    def __call__(self, z: complex) -> complex:
+        z = complex(math.log(abs(z)), cmath.phase(z))
+        z *= cmath.exp(-1j * math.pi / 4)
+        z *= (self.diagonal / (2 * math.pi))
+        return z

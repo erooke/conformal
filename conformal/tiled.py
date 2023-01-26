@@ -1,4 +1,6 @@
+from itertools import product
 from math import floor
+from typing import Callable
 
 from PIL import Image
 
@@ -150,7 +152,11 @@ def lerp(lower, upper, coord):
     return int(round(lower * (1.0 - ratio) + upper * ratio))
 
 
-def apply_map(source, size, function):
+def apply_map(
+    source: Image.Image,
+    size: tuple[int, int],
+    function: Callable[[complex], complex],
+) -> Image.Image:
     """
     Applys the inverse map of a provided function to
     an image.
@@ -180,16 +186,15 @@ def apply_map(source, size, function):
     scale = float(min(source.height, source.width))
     translate = complex(-size[0] / 2.0, -size[1] / 2.0)
 
-    for x in range(0, output.width):
-        for y in range(0, output.height):
-            image = complex(x, y) + translate
-            try:
-                preimage = scale * function(image / scale)
-                pixel = tiled.bilinear(preimage)
-            except (ZeroDivisionError, ValueError):
-                # This happens occasionally, there are probably better
-                # ways to handle it (averaging the border of tiling
-                # comes to mind)
-                pixel = (0, 0, 0)
-            output.putpixel((x, y), pixel)
+    for x, y in product(range(output.width), range(output.height)):
+        image = complex(x, y) + translate
+        try:
+            preimage = scale * function(image / scale)
+            pixel = tiled.bilinear(preimage)
+        except (ZeroDivisionError, ValueError):
+            # This happens occasionally, there are probably better
+            # ways to handle it (averaging the border of tiling
+            # comes to mind)
+            pixel = (0, 0, 0)
+        output.putpixel((x, y), pixel)
     return output

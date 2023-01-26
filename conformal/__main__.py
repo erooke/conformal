@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 
 from PIL import Image, ImageSequence
 
-from conformal import mobius_inverse
+from conformal import Spiral
 from tiled import apply_map
 
 
@@ -24,8 +24,8 @@ def main():
 
     input_image = Image.open(input_file)
 
-    # conformal_map = lambda z: spiral(input_image.height, input_image.width, z)
-    conformal_map = mobius_inverse(1, -1j, 1, 1j)
+    conformal_map = Spiral(input_image.height, input_image.width)
+    #conformal_map = Mobius_Inverse(1, -1j, 1, 1j)
 
     if input_image.format == "GIF":
         # Currently produces bloated files, the linear
